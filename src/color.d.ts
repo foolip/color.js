@@ -24,6 +24,7 @@ import {
 } from "./index-fn.js";
 
 import { uv, xy } from "./chromaticity.js";
+import inRealSurfaceGamut from "./realSurfaceGamut.js";
 import contrast from "./contrast.js";
 import {
 	contrastWCAG21,
@@ -210,6 +211,10 @@ declare class Color extends SpaceAccessors implements PlainColorObject {
 	// chromaticity
 	uv: ToColorPrototype<typeof uv>;
 	xy: ToColorPrototype<typeof xy>;
+
+	// realSurfaceGamut
+	inRealSurfaceGamut: ToColorPrototype<typeof inRealSurfaceGamut>;
+	static inRealSurfaceGamut: typeof inRealSurfaceGamut;
 
 	// contrast
 	contrast: ToColorPrototype<typeof contrast>;

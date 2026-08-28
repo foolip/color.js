@@ -68,3 +68,19 @@ Here is P3 yellow, with LCH Chroma reduced to the neutral axis. The RGB values a
 Instead, the `"css"` method reduces chroma (by binary search) and also, at each stage, calculates the deltaE2000 between the current estimate and a channel-clipped version of that color. If the deltaE is less than 2, the clipped color is displayed. Notice the red curve hugs the top edge now because clipping to sRGB also means it is inside P3 gamut. Notice how we get an in-gamut color much earlier. This method produces an in-gamut color with chroma 103.
 
 ![chroma-reduction-clip](images/p3-yellow-lab-clip.svg)
+
+## Checking against the gamut of real surface colors
+
+Unlike `color.inGamut()`, which checks a color against the gamut of a *color space* (a range of coordinates), `color.inRealSurfaceGamut()` checks whether a color could plausibly be produced by a real, opaque, non-fluorescent surface (such as a dye, paint, or textile) under a D65 illuminant.
+
+Many colors that are in gamut for wide-gamut color spaces like Display P3 or Rec.2020 are actually more saturated than any physical surface could produce; they can only be achieved with light sources, fluorescence, or other special optical effects.
+
+```js
+let green = new Color("green");
+green.inRealSurfaceGamut(); // true, this is a plausible dark green surface
+
+let p3Lime = new Color("color(display-p3 0 1 0)");
+p3Lime.inRealSurfaceGamut(); // false, too saturated for any real surface
+```
+
+This is based on the [2025 Real Surface Color Gamut](https://doi.org/10.1002/col.70004), a boundary derived from 102,801 real-world reflectance measurements, proposed as an improvement on the older and smaller [Pointer's Gamut](https://en.wikipedia.org/wiki/Pointer%27s_gamut) (1980). Since the boundary is only tabulated for a grid of hues and lightnesses in CIE Lab (D65), membership is determined via bilinear interpolation between the nearest tabulated points.

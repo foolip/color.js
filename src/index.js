@@ -22,6 +22,9 @@ Color.extend(variations);
 import contrast from "./contrast.js";
 Color.extend({ contrast });
 
+import inRealSurfaceGamut from "./realSurfaceGamut.js";
+Color.extend({ inRealSurfaceGamut });
+
 import * as chromaticity from "./chromaticity.js";
 Color.extend(chromaticity);
 
