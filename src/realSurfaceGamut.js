@@ -8,8 +8,8 @@ import { clamp } from "./util.js";
 const ε = 0.000075;
 
 // Lightness steps (CIE Lab D65) at which the gamut boundary chroma is tabulated.
-// Uneven at the end (95 → 99) because the boundary collapses to 0 chroma at L = 100 (white)
-// and gets close to it already at L = 99.
+// Uneven at the end (95 → 99) because the paper sets the gamut's own white point at L = 99
+// (the highest lightness among the input samples was 98.3), with chroma 0 there, same as at L = 0.
 const LIGHTNESSES = [
 	0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 99,
 ];
@@ -18,9 +18,12 @@ const LIGHTNESSES = [
 const HUE_STEP = 5;
 
 // Maximum chroma (CIE Lab D65) of the gamut boundary, tabulated every 5° of hue (rows, 0-355)
-// and at each of the LIGHTNESSES (columns).
-// Source: Li, C., Cui, G., Melgosa, M., et al. (2025).
-// "A new colour gamut for real surface colours." Color Research & Application.
+// and at each of the LIGHTNESSES (columns). These are lattice regression outputs, not raw samples:
+// the paper explicitly optimizes them so that bilinear interpolation between the 4 neighboring
+// nodes (as done below) reproduces the training data, so bilinear interpolation is the read-out
+// method the published numbers are designed for, not just a convenient guess.
+// Source: Xu, L., Song, Z., Luo, M. R., & Li, C. J. (2025).
+// "Construction of the Real Surface Color Gamut." Color Research & Application, 50(6), 701-710.
 // https://doi.org/10.1002/col.70004
 // Data: https://github.com/hducolorlab/Real_Surface_Color_Gamut (Proposed_Gamut_D65.csv)
 // prettier-ignore
@@ -144,11 +147,11 @@ function maxChromaAt (l, h) {
  * derived from 102,801 reflectance samples and proposed as an improvement on Pointer's Gamut.
  *
  * Chroma at the gamut boundary is only known for a grid of hues (every 5°) and lightnesses
- * (mostly every 5, except between 95 and 99), so this uses bilinear interpolation between grid points,
- * which is exact for membership testing only insofar as the true boundary is well approximated by
- * straight lines between the tabulated points.
- * @see {@link https://doi.org/10.1002/col.70004} Li, C., Cui, G., Melgosa, M., et al. (2025).
- * "A new colour gamut for real surface colours." Color Research & Application.
+ * (mostly every 5, except between 95 and 99), so this uses bilinear interpolation between grid points.
+ * This matches the paper's own method: the grid values are lattice regression outputs, optimized
+ * specifically so that bilinear interpolation between them reproduces the training data.
+ * @see {@link https://doi.org/10.1002/col.70004} Xu, L., Song, Z., Luo, M. R., & Li, C. J. (2025).
+ * "Construction of the Real Surface Color Gamut." Color Research & Application, 50(6), 701-710.
  * @param {ColorTypes} color
  * @param {{ epsilon?: number | undefined }} [param2]
  * @returns {boolean}
