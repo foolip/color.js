@@ -24,7 +24,8 @@ import {
 } from "./index-fn.js";
 
 import { uv, xy } from "./chromaticity.js";
-import inRealSurfaceGamut from "./realSurfaceGamut.js";
+import inReferenceGamut from "./inReferenceGamut.js";
+import { inRealSurfaceGamut, inRealSurfaceGamutFull, inPointersGamut } from "./gamuts/index.js";
 import contrast from "./contrast.js";
 import {
 	contrastWCAG21,
@@ -212,9 +213,15 @@ declare class Color extends SpaceAccessors implements PlainColorObject {
 	uv: ToColorPrototype<typeof uv>;
 	xy: ToColorPrototype<typeof xy>;
 
-	// realSurfaceGamut
+	// reference gamuts
+	inReferenceGamut: ToColorPrototype<typeof inReferenceGamut>;
+	static inReferenceGamut: typeof inReferenceGamut;
 	inRealSurfaceGamut: ToColorPrototype<typeof inRealSurfaceGamut>;
 	static inRealSurfaceGamut: typeof inRealSurfaceGamut;
+	inRealSurfaceGamutFull: ToColorPrototype<typeof inRealSurfaceGamutFull>;
+	static inRealSurfaceGamutFull: typeof inRealSurfaceGamutFull;
+	inPointersGamut: ToColorPrototype<typeof inPointersGamut>;
+	static inPointersGamut: typeof inPointersGamut;
 
 	// contrast
 	contrast: ToColorPrototype<typeof contrast>;

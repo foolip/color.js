@@ -5,7 +5,7 @@
 	"delta": "DeltaE",
 	"gamut": "Gamut mapping",
 	"in_gamut": "In gamut",
-	"real_surface_gamut": "Real Surface Color Gamut",
+	"reference_gamuts": "Reference gamuts",
 	"interpolation": "Interpolation",
 	"modifications": "Color modification",
 	"contrast": "Contrast",

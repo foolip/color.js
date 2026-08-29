@@ -1,11 +1,5 @@
-import getColor from "./getColor.js";
-import labD65 from "./spaces/lab-d65.js";
-import { constrain } from "./angles.js";
-import { clamp } from "./util.js";
-
-/** @import { ColorTypes } from "./types.js" */
-
-const ε = 0.000075;
+import labD65 from "../spaces/lab-d65.js";
+import createLchGridGamut from "./lchGridGamut.js";
 
 // Lightness steps (CIE Lab D65) at which the gamut boundary chroma is tabulated.
 // Uneven at the end (95 → 99) because the paper sets the gamut's own white point at L = 99
@@ -17,11 +11,11 @@ const LIGHTNESSES = [
 // Hue is tabulated every 5°, from 0° to 355°
 const HUE_STEP = 5;
 
-// Maximum chroma (CIE Lab D65) of the gamut boundary, tabulated every 5° of hue (rows, 0-355)
-// and at each of the LIGHTNESSES (columns). These are lattice regression outputs, not raw samples:
-// the paper explicitly optimizes them so that bilinear interpolation between the 4 neighboring
-// nodes (as done below) reproduces the training data, so bilinear interpolation is the read-out
-// method the published numbers are designed for, not just a convenient guess.
+// Maximum chroma (CIE Lab D65) of the "Proposed Gamut" boundary, tabulated every 5° of hue
+// (rows, 0-355) and at each of the LIGHTNESSES (columns). These are lattice regression outputs,
+// not raw samples: the paper explicitly optimizes them so that bilinear interpolation between the
+// 4 neighboring nodes reproduces the training data, so bilinear interpolation (see lchGridGamut.js)
+// is the read-out method the published numbers are designed for, not just a convenient guess.
 // Source: Xu, L., Song, Z., Luo, M. R., & Li, C. J. (2025).
 // "Construction of the Real Surface Color Gamut." Color Research & Application, 50(6), 701-710.
 // https://doi.org/10.1002/col.70004
@@ -103,46 +97,7 @@ const MAX_CHROMA = [
 ];
 
 /**
- * Linearly interpolate the maximum chroma for a given lightness,
- * from the tabulated values for a single hue (i.e. a row of MAX_CHROMA).
- * @param {number[]} row
- * @param {number} l Lightness, already clamped to [0, 99]
- * @returns {number}
- */
-function maxChromaAtLightness (row, l) {
-	let i = 1;
-	while (LIGHTNESSES[i] < l) {
-		i++;
-	}
-
-	let l0 = LIGHTNESSES[i - 1];
-	let l1 = LIGHTNESSES[i];
-	let c0 = row[i - 1];
-	let c1 = row[i];
-
-	return l0 === l1 ? c0 : c0 + ((c1 - c0) * (l - l0)) / (l1 - l0);
-}
-
-/**
- * Maximum chroma of the gamut boundary at a given lightness and hue,
- * via bilinear interpolation of the tabulated data.
- * @param {number} l Lightness, already clamped to [0, 99]
- * @param {number} h Hue, already constrained to [0, 360)
- * @returns {number}
- */
-function maxChromaAt (l, h) {
-	let hueIndex0 = Math.floor(h / HUE_STEP) % MAX_CHROMA.length;
-	let hueIndex1 = (hueIndex0 + 1) % MAX_CHROMA.length;
-	let hueFraction = (h - hueIndex0 * HUE_STEP) / HUE_STEP;
-
-	let c0 = maxChromaAtLightness(MAX_CHROMA[hueIndex0], l);
-	let c1 = maxChromaAtLightness(MAX_CHROMA[hueIndex1], l);
-
-	return c0 + (c1 - c0) * hueFraction;
-}
-
-/**
- * Check whether a color is within the 2025 Real Surface Color Gamut,
+ * Check whether a color is within the 2025 Real Surface Color Gamut ("Proposed Gamut"),
  * a gamut of real (non-fluorescent, non-luminous) surface colors under a D65 illuminant,
  * derived from 102,801 reflectance samples and proposed as an improvement on Pointer's Gamut.
  *
@@ -150,31 +105,23 @@ function maxChromaAt (l, h) {
  * (mostly every 5, except between 95 and 99), so this uses bilinear interpolation between grid points.
  * This matches the paper's own method: the grid values are lattice regression outputs, optimized
  * specifically so that bilinear interpolation between them reproduces the training data.
+ *
+ * This is the "Proposed Gamut" from the paper — a tighter fit that excludes some outlier samples.
+ * See {@link ./realSurfaceGamut2025Full.js} for the "Full Gamut" that includes all of them.
  * @see {@link https://doi.org/10.1002/col.70004} Xu, L., Song, Z., Luo, M. R., & Li, C. J. (2025).
  * "Construction of the Real Surface Color Gamut." Color Research & Application, 50(6), 701-710.
- * @param {ColorTypes} color
- * @param {{ epsilon?: number | undefined }} [param2]
+ * @param {import("../types.js").ColorTypes} color
+ * @param {{ epsilon?: number | undefined }} [options]
  * @returns {boolean}
  */
-export default function inRealSurfaceGamut (color, { epsilon = ε } = {}) {
-	color = getColor(color);
-	let [L, a, b] = labD65.from(color);
+const inRealSurfaceGamut = createLchGridGamut({
+	space: labD65,
+	hueStep: HUE_STEP,
+	lightnesses: LIGHTNESSES,
+	maxChroma: MAX_CHROMA,
+	// The tabulated boundary only goes up to L = 99, where chroma is already 0.
+	// Real surfaces cannot be lighter than white (L = 100), where chroma must also be 0.
+	maxLightness: 100,
+});
 
-	if (L < -epsilon || L > 100 + epsilon) {
-		// Real surfaces cannot be darker than black or lighter than white
-		return false;
-	}
-
-	let C = Math.sqrt(a ** 2 + b ** 2);
-
-	if (C <= epsilon) {
-		// Achromatic colors are always in gamut, for any in-range lightness
-		return true;
-	}
-
-	// The tabulated boundary only goes up to L = 99, where chroma is already 0,
-	// same as at L = 100, so clamping lightness to that range is safe.
-	let maxChroma = maxChromaAt(clamp(0, L, 99), constrain((Math.atan2(b, a) * 180) / Math.PI));
-
-	return C <= maxChroma + epsilon;
-}
+export default inRealSurfaceGamut;
