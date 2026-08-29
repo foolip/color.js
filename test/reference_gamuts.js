@@ -31,6 +31,33 @@ export default {
 					args: ["lab-d65", [50, 90, 0]],
 					expect: false,
 				},
+				{
+					name: "just inside the boundary halfway between hue 0° and 5°, L 50°",
+					description:
+						"Tabulated max chroma is 80.22 at hue 0° and 81.64 at hue 5°, so bilinear " +
+						"interpolation should put the boundary at 2.5° close to their average, 80.9",
+					args: [
+						"lab-d65",
+						[
+							50,
+							80.9 * Math.cos((2.5 * Math.PI) / 180),
+							80.9 * Math.sin((2.5 * Math.PI) / 180),
+						],
+					],
+					expect: true,
+				},
+				{
+					name: "just outside the boundary halfway between hue 0° and 5°, L 50°",
+					args: [
+						"lab-d65",
+						[
+							50,
+							81.0 * Math.cos((2.5 * Math.PI) / 180),
+							81.0 * Math.sin((2.5 * Math.PI) / 180),
+						],
+					],
+					expect: false,
+				},
 				{ name: "srgb dark green (a real surface color)", args: "green", expect: true },
 				{ name: "srgb red (too saturated for a real surface)", args: "red", expect: false },
 				{

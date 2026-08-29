@@ -54,11 +54,9 @@ export default function createLchGridGamut ({
 	}
 
 	function maxChromaAt (l, h) {
-		if (l > maxTabulatedLightness) {
-			// Past the last tabulated lightness, but still within maxLightness (see above)
-			return 0;
-		}
-
+		// l is always pre-clamped to maxTabulatedLightness by the caller below. The maxLightness
+		// extension (for lightness past the tabulated grid but still physically valid) relies on
+		// that clamp landing on the last tabulated row, whose chroma is 0 for every gamut that uses it.
 		let hueIndex0 = Math.floor(h / hueStep) % maxChroma.length;
 		let hueIndex1 = (hueIndex0 + 1) % maxChroma.length;
 		let hueFraction = (h - hueIndex0 * hueStep) / hueStep;
