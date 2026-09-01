@@ -83,22 +83,20 @@ let p3Lime = new Color("color(display-p3 0 1 0)");
 p3Lime.inRealSurfaceGamut(); // false, too saturated for any real surface
 ```
 
-Color.js currently ships three such gamuts, each a named method as well as usable through the generic `color.inReferenceGamut(name)`:
+Color.js currently ships two such gamuts, each a named method as well as usable through the generic `color.inReferenceGamut(name)`:
 
 | Method | `inReferenceGamut` name | Source |
 |---|---|---|
 | `inRealSurfaceGamut()` (default) | `"real-surface-2025"` | 2025 Real Surface Color Gamut, "Proposed Gamut" |
 | `inRealSurfaceGamutFull()` | `"real-surface-2025-full"` | 2025 Real Surface Color Gamut, "Full Gamut" |
-| `inPointersGamut()` | `"pointers-1980"` | Pointer's Gamut (1980) |
 
 ```js
 green.inReferenceGamut(); // same as green.inRealSurfaceGamut() — the default
-green.inReferenceGamut("pointers-1980"); // check against a specific gamut by name
+green.inReferenceGamut("real-surface-2025-full"); // check against a specific gamut by name
 ```
 
-**Each reference gamut is only meaningful in the color space and illuminant it was published in** — checking a color against one always converts internally, so you never need to convert first, but it's worth knowing what's happening:
+Both are based on the [2025 Real Surface Color Gamut](https://doi.org/10.1002/col.70004) (Xu, Song, Luo & Li, *Color Research & Application*), derived from 102,801 real-world reflectance measurements under a **D65** illuminant via a modified lattice regression algorithm. The "Proposed Gamut" is a tighter fit; the "Full Gamut" is fit with the added constraint that it must contain every input sample, including outliers. The Full Gamut is larger *overall*, but the two are independent fits, not one nested inside the other — at a small fraction of the tabulated grid the Full Gamut is actually a little smaller. Both are tabulated in CIE Lab (D65) over a grid of hues and lightnesses; since the paper's lattice regression grid values are specifically optimized so that bilinear interpolation between them reproduces the training data, that's what's used to read chroma between the tabulated points.
 
-- **`inRealSurfaceGamut()`** and **`inRealSurfaceGamutFull()`** are both based on the [2025 Real Surface Color Gamut](https://doi.org/10.1002/col.70004) (Xu, Song, Luo & Li, *Color Research & Application*), derived from 102,801 real-world reflectance measurements under a **D65** illuminant via a modified lattice regression algorithm. The "Proposed Gamut" is a tighter fit; the "Full Gamut" is fit with the added constraint that it must contain every input sample, including outliers. The Full Gamut is larger *overall*, but the two are independent fits, not one nested inside the other — at a small fraction of the tabulated grid the Full Gamut is actually a little smaller. Both are tabulated in CIE Lab (D65) over a grid of hues and lightnesses; since the paper's lattice regression grid values are specifically optimized so that bilinear interpolation between them reproduces the training data, that's what's used to read chroma between the tabulated points.
-- **`inPointersGamut()`** is the original [Pointer's Gamut](https://en.wikipedia.org/wiki/Pointer%27s_gamut) (1980), superseded in accuracy by the 2025 gamuts above but still widely cited. It was published in CIE Lab under **Illuminant C**, not D65, so a color is chromatically adapted (CAT16, matching the conversion the 2025 paper itself uses to compare against Pointer's Gamut) before its coordinates are looked up. Pointer's Gamut also isn't closed — there's no defined white or black point, and lightness is only tabulated from 15 to 90 — so `inPointersGamut()` returns `false` for lightness outside that range rather than guessing.
+**Each reference gamut is only meaningful in the color space and illuminant it was published in** — checking a color against one always converts internally, so you never need to convert first, but a future gamut published under a different illuminant would need that conversion built in too.
 
 Adding a further reference gamut published the same way (a grid of max chroma over hue and lightness, in some Lab-like space) is a matter of adding its data to `src/gamuts/`; see the comments in `src/gamuts/lchGridGamut.js` and `src/gamuts/index.js`.

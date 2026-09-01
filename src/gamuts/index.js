@@ -10,13 +10,11 @@
  */
 import inRealSurfaceGamut from "./realSurfaceGamut2025.js";
 import inRealSurfaceGamutFull from "./realSurfaceGamut2025Full.js";
-import inPointersGamut from "./pointersGamut.js";
 
 const gamuts = {
 	"real-surface-2025": inRealSurfaceGamut,
 	"real-surface-2025-full": inRealSurfaceGamutFull,
-	"pointers-1980": inPointersGamut,
 };
 
 export default gamuts;
-export { inRealSurfaceGamut, inRealSurfaceGamutFull, inPointersGamut };
+export { inRealSurfaceGamut, inRealSurfaceGamutFull };

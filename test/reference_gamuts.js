@@ -1,11 +1,10 @@
 import Color from "../src/index.js";
-import labC from "../src/gamuts/labIlluminantC.js";
 
 export default {
 	name: "Reference gamut tests",
 	description:
 		"Gamuts of real surface colors (as opposed to a color space's own coordinate gamut) — " +
-		"see https://doi.org/10.1002/col.70004, https://doi.org/10.1002/col.5080050308 " +
+		"see https://doi.org/10.1002/col.70004 " +
 		"and https://github.com/color-js/color.js/issues/764",
 	run (...ctorArgs) {
 		let color = new Color(...ctorArgs);
@@ -83,62 +82,6 @@ export default {
 			],
 		},
 		{
-			name: "Pointer's Gamut, 1980 (inPointersGamut)",
-			description: "Tabulated in CIE Lab under Illuminant C, not D65",
-			data: { method: "inPointersGamut" },
-			tests: [
-				{
-					name: "achromatic within the tabulated lightness range",
-					args: [labC, [50, 0, 0]],
-					expect: true,
-				},
-				{
-					name: "lightness below the tabulated range (gamut isn't closed, not claimed outside)",
-					args: [labC, [10, 0, 0]],
-					expect: false,
-				},
-				{
-					name: "lightness above the tabulated range",
-					args: [labC, [95, 0, 0]],
-					expect: false,
-				},
-				{
-					name: "lightness at the tabulated minimum (15)",
-					args: [labC, [15, 0, 0]],
-					expect: true,
-				},
-				{
-					name: "lightness at the tabulated maximum (90)",
-					args: [labC, [90, 0, 0]],
-					expect: true,
-				},
-				{
-					name: "just inside the boundary at hue 60°, L 45° (tabulated max chroma 70)",
-					args: [
-						labC,
-						[
-							45,
-							70 * Math.cos((60 * Math.PI) / 180),
-							70 * Math.sin((60 * Math.PI) / 180),
-						],
-					],
-					expect: true,
-				},
-				{
-					name: "just outside the boundary at hue 60°, L 45°",
-					args: [
-						labC,
-						[
-							45,
-							71 * Math.cos((60 * Math.PI) / 180),
-							71 * Math.sin((60 * Math.PI) / 180),
-						],
-					],
-					expect: false,
-				},
-			],
-		},
-		{
 			name: "inReferenceGamut() generic dispatcher",
 			data: { method: "inReferenceGamut" },
 			tests: [
@@ -151,12 +94,6 @@ export default {
 					name: "explicit gamut name reaches the Full 2025 gamut",
 					args: ["lab-d65", [40, 85, 30]],
 					data: { arg: "real-surface-2025-full" },
-					expect: true,
-				},
-				{
-					name: "explicit gamut name reaches Pointer's Gamut",
-					args: [labC, [15, 0, 0]],
-					data: { arg: "pointers-1980" },
 					expect: true,
 				},
 				{

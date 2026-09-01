@@ -14,8 +14,8 @@ const ε = 0.000075;
  * via bilinear interpolation, treating hue as circular.
  *
  * This is the shape shared by every currently supported reference gamut
- * (the 2025 Real Surface Color Gamut and its Full variant, and Pointer's Gamut),
- * and by any future gamut published the same way.
+ * (the 2025 Real Surface Color Gamut and its Full variant), and by any
+ * future gamut published the same way.
  * @param {object} o
  * @param {ColorSpace} o.space Lab-like space the boundary is tabulated in
  * @param {number} o.hueStep Hue is tabulated every `hueStep` degrees, starting at 0
